@@ -1,10 +1,12 @@
 const showSelect = document.getElementById("show-select");
 const showDetails = document.getElementById("show-details");
+const messageContainer = document.getElementById("message-container");
 
 async function loadShows() {
     const url = "https://api.tvmaze.com/shows?page=0";
 
     try {
+        showLoadingMessage();
         const res = await fetch(url);
 
         if (!res.ok) {
@@ -24,7 +26,9 @@ async function loadShows() {
 
         fillDropdown(sorted);
     } catch (error) {
-        console.error(error);
+        displayErrorMessage("Failed to load shows. Please try again later.");
+    } finally {
+        hideLoadingMessage();
     }
 }
 
@@ -61,16 +65,23 @@ async function loadShowDetails(showId) {
     const url = `https://api.tvmaze.com/shows/${showId}`;
 
     try {
+        showLoadingMessage();
         const res = await fetch(url);
 
         if (!res.ok) {
-            throw new Error(`Request failed with status ${res.status}`);
+            if (res.status === 404) {
+                throw new Error("The show could not be found.");
+            } else {
+                throw new Error(`Request failed with status ${res.status}`);
+            }
         }
 
         const show = await res.json();
         displayDetails(show);
     } catch (error) {
-        console.error(error);
+        displayErrorMessage(error.message);
+    } finally {
+        hideLoadingMessage();
     }
 }
 
@@ -128,6 +139,23 @@ function displayDetails(show) {
     infoWrapper.appendChild(rating);
 
     showDetails.appendChild(infoWrapper);
+}
+
+// Show loading message
+function showLoadingMessage() {
+    messageContainer.textContent = "Loading...";
+    messageContainer.style.display = "block";
+}
+
+// Hide loading message
+function hideLoadingMessage() {
+    messageContainer.style.display = "none";
+}
+
+// Display error message
+function displayErrorMessage(message) {
+    messageContainer.textContent = message;
+    messageContainer.style.display = "block";
 }
 
 loadShows();
