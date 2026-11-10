@@ -1,4 +1,5 @@
 const showSelect = document.getElementById("show-select");
+const showDetails = document.getElementById("show-details");
 
 async function loadShows() {
     const url = "https://api.tvmaze.com/shows?page=0";
@@ -45,10 +46,19 @@ function fillDropdown(shows) {
         option.textContent = show.name;    // option text = show name
         showSelect.appendChild(option);
     });
+
+    // Add event listener to load show details
+    showSelect.addEventListener('change', () => {
+        const selectedId = showSelect.value;
+        if (selectedId) {
+            loadShowDetails(selectedId);
+        }
+    });
 }
 
-async function loadShowDetails(id) {
-    const url = `https://api.tvmaze.com/shows/${id}`;
+// Fetch and display show details
+async function loadShowDetails(showId) {
+    const url = `https://api.tvmaze.com/shows/${showId}`;
 
     try {
         const res = await fetch(url);
@@ -58,20 +68,66 @@ async function loadShowDetails(id) {
         }
 
         const show = await res.json();
-        console.log(show);
+        displayDetails(show);
     } catch (error) {
         console.error(error);
     }
 }
 
-showSelect.addEventListener("change", function () {
-    const id = showSelect.value;
+// Function to display show details
+function displayDetails(show) {
+    // Clear previous details
+    showDetails.innerHTML = "";
 
-    if (id === "") {
-        return;
+    // Display show name as a heading
+    const heading = document.createElement("h2");
+    heading.textContent = show.name;
+    showDetails.appendChild(heading);
+
+    // Display poster
+    const posterWrapper = document.createElement("div");
+    if (show.image && show.image.original) {
+        const img = document.createElement("img");
+        img.src = show.image.original;
+        img.alt = `Poster for ${show.name}`;
+        posterWrapper.appendChild(img);
+    } else {
+        const noPosterText = document.createElement("p");
+        noPosterText.textContent = "No poster available";
+        posterWrapper.appendChild(noPosterText);
     }
+    showDetails.appendChild(posterWrapper);
 
-    loadShowDetails(id);
-});
+    // Display summary
+    const summaryWrapper = document.createElement("div");
+    const summary = document.createElement("p");
+    summary.innerHTML = show.summary ? show.summary.replace(/<[^>]+>/g, '') : "No summary available";
+    summaryWrapper.appendChild(summary);
+    showDetails.appendChild(summaryWrapper);
+
+    // Display genres
+    const genresWrapper = document.createElement("div");
+    const genresText = show.genres.length > 0 ? show.genres.join(", ") : "Not listed";
+    const genres = document.createElement("p");
+    genres.textContent = `Genres: ${genresText}`;
+    genresWrapper.appendChild(genres);
+    showDetails.appendChild(genresWrapper);
+
+    // Display premiere date, status, and rating
+    const infoWrapper = document.createElement("div");
+    const premiereDate = document.createElement("p");
+    premiereDate.textContent = `Premiere: ${show.premiered ? show.premiered : "Unknown"}`;
+    infoWrapper.appendChild(premiereDate);
+
+    const status = document.createElement("p");
+    status.textContent = `Status: ${show.status ? show.status : "Unknown"}`;
+    infoWrapper.appendChild(status);
+
+    const rating = document.createElement("p");
+    rating.textContent = `Rating: ${show.rating && show.rating.average ? show.rating.average : "Not rated"}`;
+    infoWrapper.appendChild(rating);
+
+    showDetails.appendChild(infoWrapper);
+}
 
 loadShows();
