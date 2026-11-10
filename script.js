@@ -143,17 +143,21 @@ function displayDetails(show) {
 
 // Show loading message
 function showLoadingMessage() {
+    messageContainer.className = "loading";
     messageContainer.textContent = "Loading...";
     messageContainer.style.display = "block";
 }
 
-// Hide loading message
+// Hide loading message (leaves an error message visible)
 function hideLoadingMessage() {
-    messageContainer.style.display = "none";
+    if (messageContainer.classList.contains("loading")) {
+        messageContainer.style.display = "none";
+    }
 }
 
 // Display error message
 function displayErrorMessage(message) {
+    messageContainer.className = "error";
     messageContainer.textContent = message;
     messageContainer.style.display = "block";
 }
